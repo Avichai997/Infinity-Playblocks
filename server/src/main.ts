@@ -5,6 +5,7 @@ import helmet from 'helmet';
 
 import { AppModule } from '@/app.module';
 import { HttpExceptionFilter } from '@/common';
+import { setupSwagger } from '@/utils';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -48,9 +49,12 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api');
 
+  setupSwagger(app);
+
   const port = process.env.SERVER_PORT || 3001;
   await app.listen(port);
   console.log(`Server is running on: http://localhost:${port}`);
+  console.log(`Swagger documentation available at: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

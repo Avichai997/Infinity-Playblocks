@@ -9,14 +9,18 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/common';
 import { CreatePlaybookDto, UpdatePlaybookDto, SimulateQueryDto } from './dto';
 import { PlaybooksService } from './playbooks.service';
 
+@ApiTags('Playbooks')
 @Controller('playbooks')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@ApiCookieAuth('access_token')
 export class PlaybooksController {
   constructor(private readonly playbooksService: PlaybooksService) {}
 
