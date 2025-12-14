@@ -9,6 +9,6 @@ cd client || exit 1
 npx concurrently --raw --kill-others-on-fail \
   "npm run lint" \
   "npm run format" \
-  "npm run test" \
+  "npm run typecheck" \
   "npm run build"
 

@@ -1,12 +1,20 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Save the original directory
+ORIGINAL_DIR=$(pwd)
+
 # Check if any client files are staged
 if git diff --cached --name-only --diff-filter=ACM | grep -q "^client/"; then
   echo "Running lint-staged for client..."
-  cd client && npx lint-staged
-  CLIENT_EXIT=$?
-  cd ..
+  if cd client; then
+    npx lint-staged
+    CLIENT_EXIT=$?
+    cd "$ORIGINAL_DIR" || exit 1
+  else
+    echo "Failed to change to client directory"
+    CLIENT_EXIT=1
+  fi
 else
   CLIENT_EXIT=0
 fi
@@ -14,9 +22,14 @@ fi
 # Check if any server files are staged
 if git diff --cached --name-only --diff-filter=ACM | grep -q "^server/"; then
   echo "Running lint-staged for server..."
-  cd server && npx lint-staged
-  SERVER_EXIT=$?
-  cd ..
+  if cd server; then
+    npx lint-staged
+    SERVER_EXIT=$?
+    cd "$ORIGINAL_DIR" || exit 1
+  else
+    echo "Failed to change to server directory"
+    SERVER_EXIT=1
+  fi
 else
   SERVER_EXIT=0
 fi
