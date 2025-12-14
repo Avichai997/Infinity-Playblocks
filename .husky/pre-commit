@@ -1,40 +1,8 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+cd "$(dirname -- "$0")/.." || exit 1
 
-# Save the original directory
-ORIGINAL_DIR=$(pwd)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-# Check if any client files are staged
-if git diff --cached --name-only --diff-filter=ACM | grep -q "^client/"; then
-  echo "Running lint-staged for client..."
-  if cd client; then
-    npx lint-staged
-    CLIENT_EXIT=$?
-    cd "$ORIGINAL_DIR" || exit 1
-  else
-    echo "Failed to change to client directory"
-    CLIENT_EXIT=1
-  fi
-else
-  CLIENT_EXIT=0
-fi
-
-# Check if any server files are staged
-if git diff --cached --name-only --diff-filter=ACM | grep -q "^server/"; then
-  echo "Running lint-staged for server..."
-  if cd server; then
-    npx lint-staged
-    SERVER_EXIT=$?
-    cd "$ORIGINAL_DIR" || exit 1
-  else
-    echo "Failed to change to server directory"
-    SERVER_EXIT=1
-  fi
-else
-  SERVER_EXIT=0
-fi
-
-# Exit with error if either failed
-if [ $CLIENT_EXIT -ne 0 ] || [ $SERVER_EXIT -ne 0 ]; then
-  exit 1
-fi
+cd client && npx lint-staged && cd .. || exit 1
+cd server && npx lint-staged && cd .. || exit 1
