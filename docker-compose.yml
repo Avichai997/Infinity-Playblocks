@@ -19,7 +19,7 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
+      dockerfile: ${DOCKERFILE:-Dockerfile}
     container_name: playbook_server
     ports:
       - "${SERVER_PORT:-3001}:3001"
@@ -43,7 +43,7 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: ${DOCKERFILE:-Dockerfile}
     container_name: playbook_client
     ports:
       - "${CLIENT_PORT:-5173}:5173"

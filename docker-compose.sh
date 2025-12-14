@@ -13,9 +13,9 @@ for arg in "$@"; do
   fi
 done
 
-# Set NODE_ENV based on mode and run docker-compose
+# Set NODE_ENV and DOCKERFILE based on mode and run docker-compose
 if [ "$DEV_MODE" = true ]; then
-  NODE_ENV=development docker-compose "${ARGS[@]}"
+  NODE_ENV=development DOCKERFILE=Dockerfile.dev docker-compose "${ARGS[@]}"
 else
   docker-compose "${ARGS[@]}"
 fi
