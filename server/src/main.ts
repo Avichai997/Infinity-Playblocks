@@ -27,8 +27,8 @@ async function bootstrap() {
   );
   app.use(cookieParser());
 
-  const { doubleCsrfProtection, invalidCsrfTokenError } = doubleCsrf({
-    getSecret: () => process.env.JWT_SECRET || 'your-secret-key',
+  const { doubleCsrfProtection } = doubleCsrf({
+    getSecret: () => process.env.JWT_SECRET,
     getSessionIdentifier: (req) => req.ip || 'default',
     cookieName: '_csrf',
     cookieOptions: {
@@ -52,26 +52,7 @@ async function bootstrap() {
     },
   });
 
-  // Wrap CSRF protection to handle errors properly
-  app.use((req, res, next) => {
-    doubleCsrfProtection(req, res, (err) => {
-      if (err) {
-        // Check if it's a CSRF token error
-        const error = err as Error & { code?: string };
-        if (err === invalidCsrfTokenError || error?.code === 'EBADCSRFTOKEN') {
-          return res.status(403).json({
-            statusCode: 403,
-            timestamp: new Date().toISOString(),
-            path: req.path,
-            message: 'Invalid CSRF token',
-          });
-        }
-        // For other errors, pass to next error handler
-        return next(err);
-      }
-      next();
-    });
-  });
+  app.use(doubleCsrfProtection);
 
   // CORS configuration
   app.enableCors({
