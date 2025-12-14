@@ -50,9 +50,6 @@ export class PlaybooksService {
     updatePlaybookDto: UpdatePlaybookDto,
   ): Promise<Playbook> {
     const playbook = await this.findOne(id, userId);
-    if (!playbook) {
-      throw new NotFoundException('Playbook not found');
-    }
     Object.assign(playbook, updatePlaybookDto);
     return this.playbookRepository.save(playbook);
   }
