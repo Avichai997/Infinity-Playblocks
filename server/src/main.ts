@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { doubleCsrf } from 'csrf-csrf';
 
 import { AppModule } from '@/app.module';
 import { HttpExceptionFilter } from '@/common';
@@ -25,6 +26,32 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
+
+  const { doubleCsrfProtection } = doubleCsrf({
+    getSecret: () => process.env.JWT_SECRET,
+    getSessionIdentifier: (req) => req.ip || 'default',
+    cookieName: '_csrf',
+    cookieOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    },
+    size: 64,
+    ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
+    getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'] as string,
+    skipCsrfProtection: (req) => {
+      // Skip CSRF check for auth endpoints (login, register, csrf-token)
+      const path = req.path;
+      return (
+        path.startsWith('/api/auth/login') ||
+        path.startsWith('/api/auth/register') ||
+        path.startsWith('/api/auth/csrf-token')
+      );
+    },
+  });
+
+  app.use(doubleCsrfProtection);
 
   // CORS configuration
   app.enableCors({

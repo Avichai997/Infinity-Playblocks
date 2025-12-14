@@ -1,7 +1,20 @@
-import { Controller, Post, Body, Res, Get, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  Get,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  Req,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
-import * as crypto from 'crypto';
+import { Request, Response } from 'express';
+
+interface ICsrfRequest extends Request {
+  csrfToken?: () => string;
+}
 
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -48,14 +61,8 @@ export class AuthController {
   }
 
   @Get('csrf-token')
-  getCsrfToken(@Res({ passthrough: true }) response: Response) {
-    const token = crypto.randomBytes(32).toString('hex');
-    response.cookie('csrf-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 1000, // 1 hour
-    });
+  getCsrfToken(@Res({ passthrough: true }) response: Response, @Req() request: ICsrfRequest) {
+    const token = request.csrfToken?.() || '';
     return { csrfToken: token };
   }
 }
