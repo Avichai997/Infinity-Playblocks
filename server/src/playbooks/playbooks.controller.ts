@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/common';
-import { CreatePlaybookDto, SimulateQueryDto } from './dto';
+import { CreatePlaybookDto, UpdatePlaybookDto, SimulateQueryDto } from './dto';
 import { PlaybooksService } from './playbooks.service';
 
 @Controller('playbooks')
@@ -26,6 +36,15 @@ export class PlaybooksController {
   @Get('simulate')
   simulate(@Query() query: SimulateQueryDto, @CurrentUser() user: { id: string; email: string }) {
     return this.playbooksService.findMatchingPlaybooks(query.trigger, user.id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updatePlaybookDto: UpdatePlaybookDto,
+    @CurrentUser() user: { id: string; email: string },
+  ) {
+    return this.playbooksService.update(id, user.id, updatePlaybookDto);
   }
 
   @Delete(':id')

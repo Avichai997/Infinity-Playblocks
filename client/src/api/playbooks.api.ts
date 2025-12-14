@@ -1,4 +1,4 @@
-import { IPlaybook, ICreatePlaybookDto, Trigger } from '@/types';
+import { IPlaybook, ICreatePlaybookDto, IUpdatePlaybookDto, Trigger } from '@/types';
 
 import api from './axios';
 
@@ -10,6 +10,11 @@ export const playbooksApi = {
 
   create: async (data: ICreatePlaybookDto): Promise<IPlaybook> => {
     const response = await api.post('/playbooks', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: IUpdatePlaybookDto): Promise<IPlaybook> => {
+    const response = await api.patch(`/playbooks/${id}`, data);
     return response.data;
   },
 

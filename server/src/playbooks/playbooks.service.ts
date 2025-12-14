@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreatePlaybookDto } from '@/playbooks/dto';
+import { CreatePlaybookDto, UpdatePlaybookDto } from '@/playbooks/dto';
 import { Playbook, Trigger } from '@/playbooks/entities';
 
 @Injectable()
@@ -42,6 +42,19 @@ export class PlaybooksService {
     }
 
     return playbook;
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    updatePlaybookDto: UpdatePlaybookDto,
+  ): Promise<Playbook> {
+    const playbook = await this.findOne(id, userId);
+    if (!playbook) {
+      throw new NotFoundException('Playbook not found');
+    }
+    Object.assign(playbook, updatePlaybookDto);
+    return this.playbookRepository.save(playbook);
   }
 
   async remove(id: string, userId: string): Promise<void> {

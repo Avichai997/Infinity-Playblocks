@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { authApi, playbooksApi } from '@/api';
 import { useAuthStore } from '@/store';
-import { ICreatePlaybookDto, Trigger, Action } from '@/types';
+import { ICreatePlaybookDto, IUpdatePlaybookDto, IPlaybook, Trigger, Action } from '@/types';
 
 export const DashboardPage = () => {
   const [name, setName] = useState('');
   const [trigger, setTrigger] = useState<Trigger>(Trigger.MalwareDetected);
   const [actions, setActions] = useState<Action[]>([]);
+  const [editingPlaybook, setEditingPlaybook] = useState<IPlaybook | null>(null);
   const { user, logout: logoutStore } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -24,6 +25,18 @@ export const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['playbooks'] });
       setName('');
+      setActions([]);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: IUpdatePlaybookDto }) =>
+      playbooksApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['playbooks'] });
+      setEditingPlaybook(null);
+      setName('');
+      setTrigger(Trigger.MalwareDetected);
       setActions([]);
     },
   });
@@ -43,12 +56,33 @@ export const DashboardPage = () => {
     }
   };
 
+  const handleEdit = (playbook: IPlaybook) => {
+    setEditingPlaybook(playbook);
+    setName(playbook.name);
+    setTrigger(playbook.trigger);
+    setActions([...playbook.actions]);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPlaybook(null);
+    setName('');
+    setTrigger(Trigger.MalwareDetected);
+    setActions([]);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || actions.length === 0) {
       return;
     }
-    createMutation.mutate({ name, trigger, actions });
+    if (editingPlaybook) {
+      updateMutation.mutate({
+        id: editingPlaybook.id,
+        data: { name, trigger, actions },
+      });
+    } else {
+      createMutation.mutate({ name, trigger, actions });
+    }
   };
 
   const handleLogout = async () => {
@@ -78,9 +112,11 @@ export const DashboardPage = () => {
 
       <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
         <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
-          {/* Create Playbook Form */}
+          {/* Create/Edit Playbook Form */}
           <div className='rounded-lg bg-white p-6 shadow'>
-            <h2 className='mb-4 text-xl font-semibold'>Create Playbook</h2>
+            <h2 className='mb-4 text-xl font-semibold'>
+              {editingPlaybook ? 'Edit Playbook' : 'Create Playbook'}
+            </h2>
             <form onSubmit={handleSubmit} className='space-y-4'>
               <div>
                 <label className='mb-1 block text-sm font-medium text-gray-700'>Name:</label>
@@ -126,13 +162,28 @@ export const DashboardPage = () => {
                 </div>
               </div>
 
-              <button
-                type='submit'
-                disabled={createMutation.isPending || !name || actions.length === 0}
-                className='w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50'
-              >
-                Create
-              </button>
+              <div className='flex gap-2'>
+                <button
+                  type='submit'
+                  disabled={
+                    (editingPlaybook ? updateMutation.isPending : createMutation.isPending) ||
+                    !name ||
+                    actions.length === 0
+                  }
+                  className='flex-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50'
+                >
+                  {editingPlaybook ? 'Update' : 'Create'}
+                </button>
+                {editingPlaybook && (
+                  <button
+                    type='button'
+                    onClick={handleCancelEdit}
+                    className='rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -156,13 +207,22 @@ export const DashboardPage = () => {
                         Trigger: {playbook.trigger.replace(/_/g, ' ')}
                       </div>
                     </div>
-                    <button
-                      onClick={() => deleteMutation.mutate(playbook.id)}
-                      disabled={deleteMutation.isPending}
-                      className='text-sm text-red-600 hover:text-red-700 disabled:opacity-50'
-                    >
-                      Delete
-                    </button>
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => handleEdit(playbook)}
+                        disabled={deleteMutation.isPending || updateMutation.isPending}
+                        className='text-sm text-indigo-600 hover:text-indigo-700 disabled:opacity-50'
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteMutation.mutate(playbook.id)}
+                        disabled={deleteMutation.isPending || updateMutation.isPending}
+                        className='text-sm text-red-600 hover:text-red-700 disabled:opacity-50'
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

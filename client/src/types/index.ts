@@ -30,6 +30,12 @@ export interface ICreatePlaybookDto {
   actions: Action[];
 }
 
+export interface IUpdatePlaybookDto {
+  name?: string;
+  trigger?: Trigger;
+  actions?: Action[];
+}
+
 export interface ILoginDto {
   email: string;
   password: string;
