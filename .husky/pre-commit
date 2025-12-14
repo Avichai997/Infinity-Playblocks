@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Check if any client files are staged
+if git diff --cached --name-only --diff-filter=ACM | grep -q "^client/"; then
+  echo "Running lint-staged for client..."
+  cd client && npx lint-staged
+  CLIENT_EXIT=$?
+  cd ..
+else
+  CLIENT_EXIT=0
+fi
+
+# Check if any server files are staged
+if git diff --cached --name-only --diff-filter=ACM | grep -q "^server/"; then
+  echo "Running lint-staged for server..."
+  cd server && npx lint-staged
+  SERVER_EXIT=$?
+  cd ..
+else
+  SERVER_EXIT=0
+fi
+
+# Exit with error if either failed
+if [ $CLIENT_EXIT -ne 0 ] || [ $SERVER_EXIT -ne 0 ]; then
+  exit 1
+fi
