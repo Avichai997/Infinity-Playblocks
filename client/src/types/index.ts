@@ -22,6 +22,7 @@ export interface IPlaybook {
   actions: Action[];
   userId: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ICreatePlaybookDto {
