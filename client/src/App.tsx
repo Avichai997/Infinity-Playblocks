@@ -1,9 +1,12 @@
+import { RouterProvider } from 'react-router-dom';
+
+import { ErrorBoundary } from '@/components';
+import { router } from '@/routes';
+
 const App = () => (
-  <div style={{ padding: '2rem', textAlign: 'center' }}>
-    <h1>Security Playbook Builder</h1>
-    <p>Client is running successfully!</p>
-    <p>Backend API: {import.meta.env.VITE_API_URL || 'http://localhost:3001'}</p>
-  </div>
+  <ErrorBoundary>
+    <RouterProvider router={router} />
+  </ErrorBoundary>
 );
 
 export default App;

@@ -1,235 +1,278 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Delete, Edit } from '@mui/icons-material';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useFormik } from 'formik';
+import { useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { authApi, playbooksApi } from '@/api';
-import { useAuthStore } from '@/store';
-import { ICreatePlaybookDto, IUpdatePlaybookDto, IPlaybook, Trigger, Action } from '@/types';
+import { Layout } from '@/components';
+import { usePlaybooks } from '@/hooks';
+import {
+  useCreatePlaybookMutation,
+  useDeletePlaybookMutation,
+  useUpdatePlaybookMutation,
+} from '@/mutations';
+import { Action, IPlaybook, Trigger } from '@/types';
+import { toCamelCase } from '@/utils';
+
+interface IFormValues {
+  name: string;
+  trigger: Trigger;
+  actions: Action[];
+}
 
 export const DashboardPage = () => {
-  const [name, setName] = useState('');
-  const [trigger, setTrigger] = useState<Trigger>(Trigger.MalwareDetected);
-  const [actions, setActions] = useState<Action[]>([]);
-  const [editingPlaybook, setEditingPlaybook] = useState<IPlaybook | null>(null);
-  const { user, logout: logoutStore } = useAuthStore();
+  const { playbookId } = useParams<{ playbookId?: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
-  const { data: playbooks = [], isLoading } = useQuery({
-    queryKey: ['playbooks'],
-    queryFn: playbooksApi.getAll,
-  });
+  const { data: playbooks = [], isLoading } = usePlaybooks();
+  const createMutation = useCreatePlaybookMutation();
+  const updateMutation = useUpdatePlaybookMutation();
+  const deleteMutation = useDeletePlaybookMutation();
 
-  const createMutation = useMutation({
-    mutationFn: (data: ICreatePlaybookDto) => playbooksApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['playbooks'] });
-      setName('');
-      setActions([]);
+  const editingPlaybook = useMemo(
+    () => (playbookId ? playbooks.find((p) => p.id === playbookId) : null),
+    [playbookId, playbooks],
+  );
+
+  const initialValues = useMemo(
+    () => ({
+      name: editingPlaybook?.name || '',
+      trigger: editingPlaybook?.trigger || Trigger.MalwareDetected,
+      actions: editingPlaybook?.actions || [],
+    }),
+    [editingPlaybook],
+  );
+
+  const formik = useFormik<IFormValues>({
+    initialValues,
+    validate: (values) => {
+      const errors: Partial<Record<keyof IFormValues, string>> = {};
+      if (!values.name) {
+        errors.name = 'Name is required';
+      }
+      if (values.actions.length === 0) {
+        errors.actions = 'At least one action is required';
+      }
+      return errors;
     },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: IUpdatePlaybookDto }) =>
-      playbooksApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['playbooks'] });
-      setEditingPlaybook(null);
-      setName('');
-      setTrigger(Trigger.MalwareDetected);
-      setActions([]);
+    onSubmit: (values) => {
+      if (editingPlaybook) {
+        updateMutation.mutate({
+          id: editingPlaybook.id,
+          data: values,
+        });
+      } else {
+        createMutation.mutate(values, {
+          onSuccess: () => {
+            formik.resetForm();
+          },
+        });
+      }
     },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => playbooksApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['playbooks'] });
-    },
+    enableReinitialize: true,
   });
 
   const handleActionToggle = (action: Action) => {
-    if (actions.includes(action)) {
-      setActions(actions.filter((a) => a !== action));
-    } else if (actions.length < 3) {
-      setActions([...actions, action]);
+    const currentActions = formik.values.actions;
+    if (currentActions.includes(action)) {
+      formik.setFieldValue(
+        'actions',
+        currentActions.filter((a) => a !== action),
+      );
+    } else if (currentActions.length < 3) {
+      formik.setFieldValue('actions', [...currentActions, action]);
     }
   };
 
   const handleEdit = (playbook: IPlaybook) => {
-    setEditingPlaybook(playbook);
-    setName(playbook.name);
-    setTrigger(playbook.trigger);
-    setActions([...playbook.actions]);
+    navigate(`/dashboard/${playbook.id}`);
   };
 
   const handleCancelEdit = () => {
-    setEditingPlaybook(null);
-    setName('');
-    setTrigger(Trigger.MalwareDetected);
-    setActions([]);
+    navigate('/dashboard');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || actions.length === 0) {
-      return;
-    }
-    if (editingPlaybook) {
-      updateMutation.mutate({
-        id: editingPlaybook.id,
-        data: { name, trigger, actions },
-      });
-    } else {
-      createMutation.mutate({ name, trigger, actions });
-    }
-  };
-
-  const handleLogout = async () => {
-    await authApi.logout();
-    logoutStore();
-    navigate('/auth');
-  };
+  const isSaveDisabled =
+    (editingPlaybook ? updateMutation.isPending : createMutation.isPending) ||
+    !formik.isValid ||
+    (editingPlaybook ? !formik.dirty : false);
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='bg-white shadow'>
-        <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between py-4'>
-            <h1 className='text-2xl font-bold text-gray-900'>Dashboard</h1>
-            <div className='flex items-center gap-4'>
-              <span className='text-sm text-gray-600'>{user?.email}</span>
-              <button
-                onClick={handleLogout}
-                className='text-sm text-indigo-600 hover:text-indigo-500'
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <Layout>
+      <Typography variant='h4' component='h1' className='mb-6 font-bold'>
+        {editingPlaybook ? 'Edit Playbook' : 'Create Playbook'}
+      </Typography>
 
-      <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
-        <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
-          {/* Create/Edit Playbook Form */}
-          <div className='rounded-lg bg-white p-6 shadow'>
-            <h2 className='mb-4 text-xl font-semibold'>
-              {editingPlaybook ? 'Edit Playbook' : 'Create Playbook'}
-            </h2>
-            <form onSubmit={handleSubmit} className='space-y-4'>
-              <div>
-                <label className='mb-1 block text-sm font-medium text-gray-700'>Name:</label>
-                <input
-                  type='text'
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className='w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
+      <Box className='flex flex-col gap-6 md:flex-row'>
+        {/* Create/Edit Playbook Form */}
+        <Box className='flex-1'>
+          <Card className='shadow-md'>
+            <CardContent className='p-6'>
+              <form onSubmit={formik.handleSubmit} className='space-y-4'>
+                <TextField
+                  fullWidth
+                  label='Name'
+                  name='name'
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={formik.touched.name && Boolean(formik.errors.name)}
+                  helperText={formik.touched.name && formik.errors.name}
                   required
+                  variant='outlined'
+                  className='mb-4'
                 />
-              </div>
 
-              <div>
-                <label className='mb-1 block text-sm font-medium text-gray-700'>Trigger:</label>
-                <select
-                  value={trigger}
-                  onChange={(e) => setTrigger(e.target.value as Trigger)}
-                  className='w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-                >
-                  <option value={Trigger.MalwareDetected}>Malware Detected</option>
-                  <option value={Trigger.LoginAttempt}>Login Attempt</option>
-                  <option value={Trigger.PhishingAlert}>Phishing Alert</option>
-                </select>
-              </div>
+                <FormControl fullWidth className='mb-4'>
+                  <Typography variant='body2' className='mb-2 text-gray-700'>
+                    Trigger:
+                  </Typography>
+                  <Select
+                    name='trigger'
+                    value={formik.values.trigger}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    variant='outlined'
+                  >
+                    {Object.values(Trigger).map((t) => (
+                      <MenuItem key={t} value={t}>
+                        {toCamelCase(t)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Actions: (Choose up to 3)
-                </label>
-                <div className='space-y-2'>
-                  {Object.values(Action).map((action) => (
-                    <label key={action} className='flex cursor-pointer items-center space-x-2'>
-                      <input
-                        type='checkbox'
-                        checked={actions.includes(action)}
-                        onChange={() => handleActionToggle(action)}
-                        disabled={!actions.includes(action) && actions.length >= 3}
-                        className='rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                <Box className='mb-4'>
+                  <Typography variant='body2' className='mb-2 text-gray-700'>
+                    Actions: (Choose up to 3)
+                  </Typography>
+                  {formik.touched.actions && formik.errors.actions && (
+                    <Typography variant='caption' color='error' className='mb-2 block'>
+                      {formik.errors.actions}
+                    </Typography>
+                  )}
+                  <FormGroup>
+                    {Object.values(Action).map((action) => (
+                      <FormControlLabel
+                        key={action}
+                        control={
+                          <Checkbox
+                            checked={formik.values.actions.includes(action)}
+                            onChange={() => handleActionToggle(action)}
+                            disabled={
+                              !formik.values.actions.includes(action) &&
+                              formik.values.actions.length >= 3
+                            }
+                            className='text-indigo-600'
+                          />
+                        }
+                        label={toCamelCase(action)}
                       />
-                      <span className='text-sm text-gray-700'>{action.replace(/_/g, ' ')}</span>
-                    </label>
+                    ))}
+                  </FormGroup>
+                </Box>
+
+                <Box className='flex gap-2'>
+                  <Button
+                    type='submit'
+                    variant='contained'
+                    disabled={isSaveDisabled}
+                    className='flex-1 bg-indigo-600 hover:bg-indigo-700'
+                  >
+                    {editingPlaybook ? 'Update' : 'Create'}
+                  </Button>
+
+                  {editingPlaybook && (
+                    <Button
+                      type='button'
+                      onClick={handleCancelEdit}
+                      variant='outlined'
+                      className='border-gray-300 text-gray-700 hover:bg-gray-50'
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </Box>
+              </form>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Playbooks List */}
+        <Box className='flex-1'>
+          <Card className='shadow-md'>
+            <CardContent className='p-6'>
+              <Typography variant='h6' className='mb-4 font-semibold'>
+                Your Playbooks
+              </Typography>
+              {isLoading ? (
+                <Box className='flex justify-center py-8'>
+                  <CircularProgress />
+                </Box>
+              ) : playbooks.length === 0 ? (
+                <Alert severity='info' className='mt-4'>
+                  No playbooks yet. Create your first playbook!
+                </Alert>
+              ) : (
+                <List>
+                  {playbooks.map((playbook) => (
+                    <ListItem
+                      key={playbook.id}
+                      className='mb-2 rounded-md border border-gray-200'
+                      secondaryAction={
+                        <Box className='flex gap-1'>
+                          <IconButton
+                            edge='end'
+                            onClick={() => handleEdit(playbook)}
+                            disabled={deleteMutation.isPending || updateMutation.isPending}
+                            className='text-indigo-600'
+                            size='small'
+                          >
+                            <Edit fontSize='small' />
+                          </IconButton>
+                          <IconButton
+                            edge='end'
+                            onClick={() => deleteMutation.mutate(playbook.id)}
+                            disabled={deleteMutation.isPending || updateMutation.isPending}
+                            className='text-red-600'
+                            size='small'
+                          >
+                            <Delete fontSize='small' />
+                          </IconButton>
+                        </Box>
+                      }
+                    >
+                      <ListItemText
+                        primary={playbook.name}
+                        secondary={`Trigger: ${toCamelCase(playbook.trigger)}`}
+                      />
+                    </ListItem>
                   ))}
-                </div>
-              </div>
-
-              <div className='flex gap-2'>
-                <button
-                  type='submit'
-                  disabled={
-                    (editingPlaybook ? updateMutation.isPending : createMutation.isPending) ||
-                    !name ||
-                    actions.length === 0
-                  }
-                  className='flex-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50'
-                >
-                  {editingPlaybook ? 'Update' : 'Create'}
-                </button>
-                {editingPlaybook && (
-                  <button
-                    type='button'
-                    onClick={handleCancelEdit}
-                    className='rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500'
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-
-          {/* Playbooks List */}
-          <div className='rounded-lg bg-white p-6 shadow'>
-            <h2 className='mb-4 text-xl font-semibold'>Your Playbooks</h2>
-            {isLoading ? (
-              <div className='py-4 text-center'>Loading...</div>
-            ) : playbooks.length === 0 ? (
-              <div className='py-4 text-center text-gray-500'>No playbooks yet</div>
-            ) : (
-              <ul className='space-y-2'>
-                {playbooks.map((playbook) => (
-                  <li
-                    key={playbook.id}
-                    className='flex items-center justify-between rounded-md border border-gray-200 p-3'
-                  >
-                    <div>
-                      <div className='font-medium'>{playbook.name}</div>
-                      <div className='text-sm text-gray-500'>
-                        Trigger: {playbook.trigger.replace(/_/g, ' ')}
-                      </div>
-                    </div>
-                    <div className='flex gap-2'>
-                      <button
-                        onClick={() => handleEdit(playbook)}
-                        disabled={deleteMutation.isPending || updateMutation.isPending}
-                        className='text-sm text-indigo-600 hover:text-indigo-700 disabled:opacity-50'
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteMutation.mutate(playbook.id)}
-                        disabled={deleteMutation.isPending || updateMutation.isPending}
-                        className='text-sm text-red-600 hover:text-red-700 disabled:opacity-50'
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+                </List>
+              )}
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+    </Layout>
   );
 };

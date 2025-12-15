@@ -1,22 +1,32 @@
-import { useQuery } from '@tanstack/react-query';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  FormControl,
+  List,
+  ListItem,
+  ListItemText,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-import { authApi, playbooksApi } from '@/api';
-import { useAuthStore } from '@/store';
+import { Layout } from '@/components';
+import { useSimulatePlaybooks } from '@/hooks';
 import { Trigger } from '@/types';
 
 export const SimulatePage = () => {
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | ''>('');
   const [runSimulation, setRunSimulation] = useState(false);
-  const { user, logout: logoutStore } = useAuthStore();
-  const navigate = useNavigate();
 
-  const { data: matchingPlaybooks = [], isLoading } = useQuery({
-    queryKey: ['simulate', selectedTrigger],
-    queryFn: () => playbooksApi.simulate(selectedTrigger as Trigger),
-    enabled: runSimulation && !!selectedTrigger,
-  });
+  const { data: matchingPlaybooks = [], isLoading } = useSimulatePlaybooks(
+    selectedTrigger,
+    runSimulation,
+  );
 
   const handleRunSimulation = () => {
     if (selectedTrigger) {
@@ -24,85 +34,96 @@ export const SimulatePage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await authApi.logout();
-    logoutStore();
-    navigate('/auth');
+  const handleTriggerChange = (trigger: Trigger | '') => {
+    setSelectedTrigger(trigger);
+    setRunSimulation(false);
   };
 
+  const getTriggerLabel = (trigger: Trigger) =>
+    trigger.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+
+  const getActionLabel = (action: string) =>
+    action.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='bg-white shadow'>
-        <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between py-4'>
-            <h1 className='text-2xl font-bold text-gray-900'>Simulate Event</h1>
-            <div className='flex items-center gap-4'>
-              <span className='text-sm text-gray-600'>{user?.email}</span>
-              <button
-                onClick={handleLogout}
-                className='text-sm text-indigo-600 hover:text-indigo-500'
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <Layout>
+      <Typography variant='h4' component='h1' className='mb-6 font-bold'>
+        Simulate Event
+      </Typography>
 
-      <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8'>
-        <div className='space-y-6 rounded-lg bg-white p-6 shadow'>
-          <div>
-            <label className='mb-2 block text-sm font-medium text-gray-700'>Select Trigger:</label>
-            <select
-              value={selectedTrigger}
-              onChange={(e) => {
-                setSelectedTrigger(e.target.value as Trigger);
-                setRunSimulation(false);
-              }}
-              className='w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-            >
-              <option value=''>Select Trigger</option>
-              <option value={Trigger.MalwareDetected}>Malware Detected</option>
-              <option value={Trigger.LoginAttempt}>Login Attempt</option>
-              <option value={Trigger.PhishingAlert}>Phishing Alert</option>
-            </select>
-          </div>
-
-          <button
-            onClick={handleRunSimulation}
-            disabled={!selectedTrigger || isLoading}
-            className='w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50'
-          >
-            Run Simulation
-          </button>
-
-          {runSimulation && (
-            <div className='border-t pt-6'>
-              <h2 className='mb-4 text-center text-xl font-semibold'>Matching Playbooks</h2>
-              {isLoading ? (
-                <div className='py-4 text-center'>Loading...</div>
-              ) : matchingPlaybooks.length === 0 ? (
-                <div className='py-4 text-center text-gray-500'>No matching playbooks found</div>
-              ) : (
-                <div className='space-y-4'>
-                  {matchingPlaybooks.map((playbook) => (
-                    <div key={playbook.id} className='rounded-md border border-gray-200 p-4'>
-                      <div className='mb-2 font-semibold'>Playbook: {playbook.name}</div>
-                      <div className='space-y-1'>
-                        {playbook.actions.map((action, index) => (
-                          <div key={index} className='text-sm text-gray-700'>
-                            → {action.replace(/_/g, ' ')}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+      <Box>
+        <Card className='shadow-md'>
+          <CardContent className='p-6'>
+            <Box className='mb-6'>
+              <FormControl fullWidth className='mb-4'>
+                <Typography variant='body2' className='mb-2 text-gray-700'>
+                  Select Trigger:
+                </Typography>
+                <Select
+                  value={selectedTrigger}
+                  onChange={(e) => handleTriggerChange(e.target.value as Trigger | '')}
+                  variant='outlined'
+                >
+                  <MenuItem value=''>Select Trigger</MenuItem>
+                  {Object.values(Trigger).map((trigger) => (
+                    <MenuItem key={trigger} value={trigger}>
+                      {getTriggerLabel(trigger)}
+                    </MenuItem>
                   ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                </Select>
+              </FormControl>
+
+              <Button
+                onClick={handleRunSimulation}
+                disabled={!selectedTrigger || isLoading}
+                variant='contained'
+                fullWidth
+                className='bg-indigo-600 hover:bg-indigo-700'
+                sx={{ py: 1.5 }}
+              >
+                Run Simulation
+              </Button>
+            </Box>
+
+            {runSimulation && (
+              <Box className='border-t pt-6'>
+                <Typography variant='h6' className='mb-4 text-center font-semibold'>
+                  Matching Playbooks
+                </Typography>
+                {isLoading ? (
+                  <Box className='flex justify-center py-8'>
+                    <CircularProgress />
+                  </Box>
+                ) : matchingPlaybooks.length === 0 ? (
+                  <Alert severity='info'>No matching playbooks found</Alert>
+                ) : (
+                  <List>
+                    {matchingPlaybooks.map((playbook) => (
+                      <Card key={playbook.id} className='mb-4 border border-gray-200'>
+                        <CardContent className='p-4'>
+                          <Typography variant='subtitle1' className='mb-2 font-semibold'>
+                            Playbook: {playbook.name}
+                          </Typography>
+                          <List dense>
+                            {playbook.actions.map((action, index) => (
+                              <ListItem key={index} className='py-1'>
+                                <ListItemText
+                                  primary={`→ ${getActionLabel(action)}`}
+                                  className='text-sm'
+                                />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </List>
+                )}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Box>
+    </Layout>
   );
 };

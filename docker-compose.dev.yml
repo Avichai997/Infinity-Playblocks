@@ -1,0 +1,9 @@
+# Development overrides
+# Client service is excluded via profiles in main docker-compose.yml
+# Run client natively for fast HMR: npm run dev
+
+services:
+  server:
+    # Use dev Dockerfile with hot reload
+    build:
+      dockerfile: Dockerfile.dev

@@ -15,7 +15,8 @@ done
 
 # Set NODE_ENV and DOCKERFILE based on mode and run docker-compose
 if [ "$DEV_MODE" = true ]; then
-  NODE_ENV=development DOCKERFILE=Dockerfile.dev docker-compose "${ARGS[@]}"
+  # In dev mode, use override to exclude client and use dev Dockerfiles
+  NODE_ENV=development DOCKERFILE=Dockerfile.dev docker-compose -f docker-compose.yml -f docker-compose.dev.yml "${ARGS[@]}"
 else
   docker-compose "${ARGS[@]}"
 fi

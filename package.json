@@ -9,7 +9,8 @@
     "docker:up:dev": "./docker-compose.sh up --dev",
     "docker:build": "./docker-compose.sh up --build",
     "docker:build:dev": "./docker-compose.sh up --build --dev",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "client:dev": "cd client && npm run dev"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

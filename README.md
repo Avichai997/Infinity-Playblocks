@@ -4,18 +4,27 @@ A full-stack application for creating and managing security automation playbooks
 
 ## Quick Start
 
-The easiest way to run the project is with Docker Compose:
+### Development Mode (⚡ Fast HMR)
 
 ```bash
 # Clone the repository
 git clone https://github.com/Avichai997/Infinity-Playblocks
 cd "Infinity Playblocks"
 
-# Production mode
-./docker-compose.sh up --build
+# Install dependencies
+npm run install
 
-# Development mode (with hot-reload)
-./docker-compose.sh up --build --dev
+# Start development with instant HMR (RECOMMENDED!)
+npm run dev
+```
+
+This runs the database and server in Docker, while the client runs natively for **lightning-fast HMR** (< 50ms).
+
+### Production Mode
+
+```bash
+# All services in Docker
+./docker-compose.sh up --build
 ```
 
 That's it! The application will be available at:
@@ -55,23 +64,54 @@ That's it! The application will be available at:
 
 ## Prerequisites
 
-- Node.js 20 (use `.nvmrc` if you have nvm: `nvm use`)
+- Node.js 22 (use `.nvmrc` if you have nvm: `nvm use`)
 - Docker and Docker Compose
 - npm or yarn
 
-## Manual Setup (Development)
+## Development Mode (Recommended for Fast HMR)
 
-If you prefer to run services locally without Docker:
+For the best development experience with instant Hot Module Replacement (HMR), run the client **natively** while the server and database run in Docker:
 
-### 1. Database Setup
+```bash
+# Install dependencies first
+npm run install
 
-Start PostgreSQL (or use Docker for just the database):
+# Start everything with one command (recommended!)
+npm run dev
+# This will:
+# 1. Start DB + Server in Docker with hot-reload
+# 2. Start Vite client natively with instant HMR
+```
+
+Or run components separately:
+
+```bash
+# Terminal 1: Start Docker services (DB + Server only)
+npm run docker:up:dev
+
+# Terminal 2: Start client natively (if not using npm run dev)
+cd client && npm run dev
+```
+
+**Why this approach?**
+- ⚡ **Super fast HMR**: Vite runs natively without Docker overhead
+- 🔄 **Live reload**: Changes reflect instantly (< 50ms)
+- 🐛 **Better debugging**: Native Chrome DevTools integration
+- 📦 **Isolated services**: Server & DB still in Docker for consistency
+
+### Manual Setup (All Services Local)
+
+If you prefer to run everything locally without Docker:
+
+#### 1. Database Setup
+
+Start PostgreSQL:
 
 ```bash
 docker-compose up db
 ```
 
-### 2. Backend Setup
+#### 2. Backend Setup
 
 ```bash
 cd server
@@ -81,7 +121,7 @@ npm run start:dev
 
 The server will run on http://localhost:3001
 
-### 3. Frontend Setup
+#### 3. Frontend Setup
 
 ```bash
 cd client
@@ -191,15 +231,40 @@ npm run lint
 ## Docker Commands
 
 ```bash
-# Production mode
-./docker-compose.sh up              # Start services
+# Development mode (RECOMMENDED - client runs natively)
+npm run dev                          # Start DB+Server in Docker, client natively (fastest HMR!)
+npm run docker:up:dev                # Same as above
+npm run docker:down                  # Stop all Docker services
+
+# Production mode (all services in Docker)
+./docker-compose.sh up              # Start all services
 ./docker-compose.sh up -d           # Start in background
 ./docker-compose.sh up --build      # Rebuild and start
 ./docker-compose.sh down            # Stop services
 
-# Development mode (add --dev flag)
-./docker-compose.sh up --dev         # Start in dev mode
-./docker-compose.sh up --build --dev # Rebuild and start in dev mode
-./docker-compose.sh logs -f --dev   # View logs in dev mode
-./docker-compose.sh down --dev      # Stop dev services
+# Advanced Docker commands
+./docker-compose.sh logs -f          # View logs
+./docker-compose.sh logs -f server   # View server logs only
+docker-compose logs -f               # View all service logs
+```
+
+## Development Tips
+
+### Fast HMR Setup
+The dev mode runs the client **natively** (outside Docker) for instant HMR:
+- Changes to React components reflect in < 50ms
+- No Docker volume sync delays
+- Full native OS file watching support
+
+### Rebuild After Dependency Changes
+If you add new npm packages:
+```bash
+# Stop services
+npm run docker:down
+
+# Rebuild with new dependencies
+npm run docker:build:dev
+
+# Or rebuild specific service
+docker-compose build server
 ```

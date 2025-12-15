@@ -41,20 +41,23 @@ services:
       - /app/node_modules
 
   client:
+    profiles: ["production"] # Only run client in Docker for production
     build:
       context: ./client
-      dockerfile: ${DOCKERFILE:-Dockerfile}
+      dockerfile: ${CLIENT_DOCKERFILE:-Dockerfile.dev}
     container_name: playbook_client
     ports:
       - "${CLIENT_PORT:-5173}:5173"
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
     depends_on:
       - server
     volumes:
       - ./client:/app
       - /app/node_modules
+      - /app/dist
+      - /app/.vite
 
 volumes:
   postgres_data:
