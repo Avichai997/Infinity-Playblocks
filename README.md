@@ -17,7 +17,11 @@ cd "Infinity-Playblocks"
 docker-compose up --build
 
 # Development mode (with hot-reload)
-NODE_ENV=development DOCKERFILE=Dockerfile.dev docker-compose up --build
+npm install
+npm run docker:build:dev
+# in separate terminal:
+cd client
+npm run dev
 ```
 
 That's it! The application will be available at:
@@ -61,23 +65,54 @@ That's it! The application will be available at:
 
 ## Prerequisites
 
-- Node.js 20 (use `.nvmrc` if you have nvm: `nvm use`)
+- Node.js 22 (use `.nvmrc` if you have nvm: `nvm use`)
 - Docker and Docker Compose
 - npm or yarn
 
-## Manual Setup (Development)
+## Development Mode (Recommended for Fast HMR)
 
-If you prefer to run services locally without Docker:
+For the best development experience with instant Hot Module Replacement (HMR), run the client **natively** while the server and database run in Docker:
 
-### 1. Database Setup
+```bash
+# Install dependencies first
+npm run install
 
-Start PostgreSQL (or use Docker for just the database):
+# Start everything with one command (recommended!)
+npm run dev
+# This will:
+# 1. Start DB + Server in Docker with hot-reload
+# 2. Start Vite client natively with instant HMR
+```
+
+Or run components separately:
+
+```bash
+# Terminal 1: Start Docker services (DB + Server only)
+npm run docker:up:dev
+
+# Terminal 2: Start client natively (if not using npm run dev)
+cd client && npm run dev
+```
+
+**Why this approach?**
+- ⚡ **Super fast HMR**: Vite runs natively without Docker overhead
+- 🔄 **Live reload**: Changes reflect instantly (< 50ms)
+- 🐛 **Better debugging**: Native Chrome DevTools integration
+- 📦 **Isolated services**: Server & DB still in Docker for consistency
+
+### Manual Setup (All Services Local)
+
+If you prefer to run everything locally without Docker:
+
+#### 1. Database Setup
+
+Start PostgreSQL:
 
 ```bash
 docker-compose up db
 ```
 
-### 2. Backend Setup
+#### 2. Backend Setup
 
 ```bash
 cd server
@@ -87,7 +122,7 @@ npm run start:dev
 
 The server will run on http://localhost:3001
 
-### 3. Frontend Setup
+#### 3. Frontend Setup
 
 ```bash
 cd client

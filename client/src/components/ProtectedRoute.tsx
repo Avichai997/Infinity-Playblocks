@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 
+import { APP_ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks';
 
 interface IProtectedRouteProps {
@@ -18,7 +19,7 @@ export const ProtectedRoute = ({ children }: IProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to='/auth' replace />;
+    return <Navigate to={APP_ROUTES.LOGIN} replace />;
   }
 
   return <>{children}</>;
