@@ -1,3 +1,4 @@
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -5,6 +6,8 @@ import {
   Card,
   CardContent,
   Container,
+  IconButton,
+  InputAdornment,
   TextField,
   Typography,
 } from '@mui/material';
@@ -16,6 +19,7 @@ export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const loginMutation = useLoginMutation();
@@ -28,8 +32,6 @@ export const AuthPage = () => {
     } else if (registerMutation.isError) {
       const err = registerMutation.error as { response?: { data?: { message?: string } } };
       setError(err.response?.data?.message || 'Registration failed');
-    } else {
-      setError('');
     }
   }, [
     loginMutation.isError,
@@ -48,9 +50,25 @@ export const AuthPage = () => {
     }
 
     if (isLogin) {
-      loginMutation.mutate({ email, password });
+      loginMutation.mutate(
+        { email, password },
+        {
+          onError: (err) => {
+            const error = err as { response?: { data?: { message?: string } } };
+            setError(error.response?.data?.message || 'Login failed');
+          },
+        },
+      );
     } else {
-      registerMutation.mutate({ email, password });
+      registerMutation.mutate(
+        { email, password },
+        {
+          onError: (err) => {
+            const error = err as { response?: { data?: { message?: string } } };
+            setError(error.response?.data?.message || 'Registration failed');
+          },
+        },
+      );
     }
   };
 
@@ -78,12 +96,25 @@ export const AuthPage = () => {
               <TextField
                 fullWidth
                 label='Password'
-                type='password'
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 variant='outlined'
                 className='mb-4'
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      <IconButton
+                        aria-label='toggle password visibility'
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge='end'
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               {error && (

@@ -28,7 +28,12 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      window.location.href = '/auth';
+      const isAuthEndpoint =
+        error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+
+      if (!isAuthEndpoint) {
+        window.location.href = '/auth';
+      }
     }
     return Promise.reject(error);
   },
