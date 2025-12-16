@@ -19,12 +19,12 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: ${DOCKERFILE:-Dockerfile}
+      dockerfile: Dockerfile
     container_name: playbook_server
     ports:
       - '${SERVER_PORT:-3001}:3001'
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
+      NODE_ENV: production
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${DB_USER:-postgres}
@@ -36,28 +36,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./server:/app
-      - /app/node_modules
 
   client:
     build:
       context: ./client
-      dockerfile: ${DOCKERFILE:-Dockerfile}
+      dockerfile: Dockerfile
     container_name: playbook_client
     ports:
       - '${CLIENT_PORT:-5173}:5173'
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      NODE_ENV: production
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
     depends_on:
       - server
-    volumes:
-      - ./client:/app
-      - client_node_modules:/app/node_modules
-      - /app/dist
-      - /app/.vite
 
 volumes:
   postgres_data:
-  client_node_modules:

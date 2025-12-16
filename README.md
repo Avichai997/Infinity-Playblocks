@@ -18,7 +18,7 @@ docker-compose up --build
 
 # Development mode (with hot-reload)
 npm install
-npm run docker:up:dev
+npm run docker:build:dev
 # in separate terminal:
 cd client
 npm run dev
