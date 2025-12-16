@@ -3,6 +3,8 @@ import { Box, Button, Card, CardContent, Typography } from '@mui/material';
 import { Component, ReactNode } from 'react';
 import { useNavigate, useRouteError } from 'react-router-dom';
 
+import { APP_ROUTES } from '@/constants/routes';
+
 interface IErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
@@ -32,7 +34,7 @@ export class ErrorBoundary extends Component<IErrorBoundaryProps, IErrorBoundary
   };
 
   handleGoHome = () => {
-    window.location.href = '/dashboard';
+    window.location.href = APP_ROUTES.PLAYBOOKS_EDITOR;
   };
 
   render() {
@@ -65,7 +67,7 @@ export const ErrorFallbackUI = ({ error, onReset, onGoHome }: IErrorFallbackProp
     if (onGoHome) {
       onGoHome();
     } else {
-      window.location.href = '/dashboard';
+      window.location.href = APP_ROUTES.PLAYBOOKS_EDITOR;
     }
     onReset?.();
   };
@@ -153,7 +155,7 @@ export const RouteErrorElement = () => {
   const navigate = useNavigate();
 
   const handleGoHome = () => {
-    navigate('/dashboard');
+    navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
   };
 
   return <ErrorFallbackUI error={error} onGoHome={handleGoHome} />;

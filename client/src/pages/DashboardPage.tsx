@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Layout, PlaybookForm, PlaybookList } from '@/components';
+import { APP_ROUTES } from '@/constants/routes';
 import { usePlaybooks } from '@/hooks';
 import {
   useCreatePlaybookMutation,
@@ -71,11 +72,11 @@ export const DashboardPage = () => {
   });
 
   const handleEdit = (playbook: { id: string }) => {
-    navigate(`/dashboard/${playbook.id}`);
+    navigate(APP_ROUTES.PLAYBOOKS_EDITOR_EDIT(playbook.id));
   };
 
   const handleCancelEdit = () => {
-    navigate('/dashboard');
+    navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
   };
 
   const isSaveDisabled =

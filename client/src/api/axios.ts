@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { APP_ROUTES } from '@/constants/routes';
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
   withCredentials: true,
@@ -32,7 +34,7 @@ api.interceptors.response.use(
         error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
 
       if (!isAuthEndpoint) {
-        window.location.href = '/auth';
+        window.location.href = APP_ROUTES.AUTH;
       }
     }
     return Promise.reject(error);

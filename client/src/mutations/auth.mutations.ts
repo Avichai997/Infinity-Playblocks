@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 import { authApi } from '@/api';
+import { APP_ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/store';
 import { ILoginDto, IRegisterDto } from '@/types';
 
@@ -15,7 +16,7 @@ export const useLoginMutation = () => {
     onSuccess: (data) => {
       setUser(data.user);
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      navigate('/dashboard');
+      navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
     },
   });
 };
@@ -34,7 +35,7 @@ export const useRegisterMutation = () => {
       });
       setUser(loginData.user);
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      navigate('/dashboard');
+      navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
     },
   });
 };
@@ -49,7 +50,7 @@ export const useLogoutMutation = () => {
     onSuccess: () => {
       logoutStore();
       queryClient.clear();
-      navigate('/auth');
+      navigate(APP_ROUTES.AUTH);
     },
   });
 };

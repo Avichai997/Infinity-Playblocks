@@ -1,34 +1,26 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { ProtectedRoute, RouteErrorElement } from '@/components';
+import { APP_ROUTES } from '@/constants/routes';
 import { AuthPage, DashboardPage, SimulatePage } from '@/pages';
 
 export const router = createBrowserRouter([
   {
-    path: '/auth',
+    path: APP_ROUTES.AUTH,
     element: <AuthPage />,
     errorElement: <RouteErrorElement />,
   },
   {
-    path: '/',
+    path: APP_ROUTES.HOME,
     element: (
       <ProtectedRoute>
-        <Navigate to='/dashboard' replace />
+        <Navigate to={APP_ROUTES.PLAYBOOKS_EDITOR} replace />
       </ProtectedRoute>
     ),
     errorElement: <RouteErrorElement />,
   },
   {
-    path: '/dashboard',
-    element: (
-      <ProtectedRoute>
-        <DashboardPage />
-      </ProtectedRoute>
-    ),
-    errorElement: <RouteErrorElement />,
-  },
-  {
-    path: '/dashboard/:playbookId',
+    path: APP_ROUTES.PLAYBOOKS_EDITOR,
     element: (
       <ProtectedRoute>
         <DashboardPage />
@@ -37,7 +29,16 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorElement />,
   },
   {
-    path: '/simulate',
+    path: `${APP_ROUTES.PLAYBOOKS_EDITOR}/:playbookId`,
+    element: (
+      <ProtectedRoute>
+        <DashboardPage />
+      </ProtectedRoute>
+    ),
+    errorElement: <RouteErrorElement />,
+  },
+  {
+    path: APP_ROUTES.SIMULATE,
     element: (
       <ProtectedRoute>
         <SimulatePage />
@@ -47,7 +48,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to='/dashboard' replace />,
+    element: <Navigate to={APP_ROUTES.PLAYBOOKS_EDITOR} replace />,
     errorElement: <RouteErrorElement />,
   },
 ]);

@@ -3,6 +3,7 @@ import { AppBar, Box, Button, Container, Menu, MenuItem, Toolbar, Typography } f
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { APP_ROUTES } from '@/constants/routes';
 import { useCsrfToken } from '@/hooks';
 import { useLogoutMutation } from '@/mutations';
 import { useAuthStore } from '@/store';
@@ -40,17 +41,27 @@ export const Layout = ({ children }: ILayoutProps) => {
               <Typography
                 variant='h6'
                 component={Link}
-                to='/dashboard'
+                to={APP_ROUTES.PLAYBOOKS_EDITOR}
                 className='font-bold text-white no-underline'
                 sx={{ textDecoration: 'none', color: 'white' }}
               >
                 Security Playbook Builder
               </Typography>
               <Box className='flex gap-2'>
-                <Button color='inherit' component={Link} to='/dashboard' className='text-white'>
-                  Dashboard
+                <Button
+                  color='inherit'
+                  component={Link}
+                  to={APP_ROUTES.PLAYBOOKS_EDITOR}
+                  className='text-white'
+                >
+                  Playbooks Editor
                 </Button>
-                <Button color='inherit' component={Link} to='/simulate' className='text-white'>
+                <Button
+                  color='inherit'
+                  component={Link}
+                  to={APP_ROUTES.SIMULATE}
+                  className='text-white'
+                >
                   Simulate
                 </Button>
               </Box>
