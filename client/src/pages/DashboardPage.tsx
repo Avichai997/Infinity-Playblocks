@@ -79,6 +79,16 @@ export const DashboardPage = () => {
     navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
   };
 
+  const handleDelete = (deletedPlaybookId: string) => {
+    deleteMutation.mutate(deletedPlaybookId, {
+      onSuccess: () => {
+        if (deletedPlaybookId === playbookId) {
+          navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
+        }
+      },
+    });
+  };
+
   const isSaveDisabled =
     (editingPlaybook ? updateMutation.isPending : createMutation.isPending) ||
     !formik.isValid ||
@@ -105,7 +115,7 @@ export const DashboardPage = () => {
             playbooks={playbooks}
             isLoading={isLoading}
             onEdit={handleEdit}
-            onDelete={(playbookId) => deleteMutation.mutate(playbookId)}
+            onDelete={handleDelete}
             isDisabled={deleteMutation.isPending || updateMutation.isPending}
           />
         </Box>

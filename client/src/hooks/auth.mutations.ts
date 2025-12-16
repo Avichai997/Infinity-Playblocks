@@ -38,19 +38,13 @@ export const useRegisterMutation = () => {
         queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
         navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
       } catch (error) {
-        // Registration succeeded but auto-login failed
-        // Navigate to login page so user can log in manually
         navigate(APP_ROUTES.LOGIN);
-        // Create a more descriptive error for the component to display
         const loginError =
           error instanceof Error
             ? new Error(`Registration successful, but automatic login failed: ${error.message}`)
             : new Error(
                 'Registration successful, but automatic login failed. Please log in manually.',
               );
-        // Re-throw to prevent unhandled promise rejection
-        // Note: The mutation state remains "success" since registration succeeded,
-        // but this error can be caught by error boundaries or logged
         throw loginError;
       }
     },
