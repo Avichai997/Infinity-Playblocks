@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 
-import { Playbook } from '@/playbooks/entities';
-import { User } from '@/users/entities';
+import { Playbook } from '../playbooks/entities';
+import { User } from '../users/entities';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
