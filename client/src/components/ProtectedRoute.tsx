@@ -19,7 +19,7 @@ export const ProtectedRoute = ({ children }: IProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={APP_ROUTES.AUTH} replace />;
+    return <Navigate to={APP_ROUTES.LOGIN} replace />;
   }
 
   return <>{children}</>;

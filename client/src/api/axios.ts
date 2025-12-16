@@ -34,7 +34,7 @@ api.interceptors.response.use(
         error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
 
       if (!isAuthEndpoint) {
-        window.location.href = APP_ROUTES.AUTH;
+        window.location.href = APP_ROUTES.LOGIN;
       }
     }
     return Promise.reject(error);

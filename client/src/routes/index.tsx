@@ -6,7 +6,12 @@ import { AuthPage, DashboardPage, SimulatePage } from '@/pages';
 
 export const router = createBrowserRouter([
   {
-    path: APP_ROUTES.AUTH,
+    path: APP_ROUTES.LOGIN,
+    element: <AuthPage />,
+    errorElement: <RouteErrorElement />,
+  },
+  {
+    path: APP_ROUTES.REGISTER,
     element: <AuthPage />,
     errorElement: <RouteErrorElement />,
   },

@@ -50,7 +50,7 @@ export const useLogoutMutation = () => {
     onSuccess: () => {
       logoutStore();
       queryClient.clear();
-      navigate(APP_ROUTES.AUTH);
+      navigate(APP_ROUTES.LOGIN);
     },
   });
 };

@@ -1,5 +1,6 @@
 export const APP_ROUTES = {
-  AUTH: '/auth',
+  LOGIN: '/login',
+  REGISTER: '/register',
   PLAYBOOKS_EDITOR: '/playbooks-editor',
   PLAYBOOKS_EDITOR_EDIT: (playbookId: string) => `/playbooks-editor/${playbookId}`,
   SIMULATE: '/simulate',
