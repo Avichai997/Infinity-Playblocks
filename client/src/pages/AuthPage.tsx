@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 
-import { useLoginMutation, useRegisterMutation } from '@/mutations';
+import { useLoginMutation, useRegisterMutation } from '@/hooks';
 
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);

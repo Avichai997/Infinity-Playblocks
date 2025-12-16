@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { APP_ROUTES } from '@/constants/routes';
-import { useCsrfToken } from '@/hooks';
-import { useLogoutMutation } from '@/mutations';
+import { useCsrfToken, useLogoutMutation } from '@/hooks';
 import { useAuthStore } from '@/store';
 
 interface ILayoutProps {

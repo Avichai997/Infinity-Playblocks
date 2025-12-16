@@ -5,12 +5,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Layout, PlaybookForm, PlaybookList } from '@/components';
 import { APP_ROUTES } from '@/constants/routes';
-import { usePlaybooks } from '@/hooks';
 import {
+  usePlaybooks,
   useCreatePlaybookMutation,
   useDeletePlaybookMutation,
   useUpdatePlaybookMutation,
-} from '@/mutations';
+} from '@/hooks';
 import { Action, IPlaybook, Trigger } from '@/types';
 
 interface IFormValues {
