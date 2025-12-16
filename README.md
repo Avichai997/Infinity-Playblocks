@@ -4,21 +4,24 @@ A full-stack application for creating and managing security automation playbooks
 
 ## Quick Start
 
+### Development Mode (with hot-reload)
+
 The easiest way to run the project is with Docker Compose:
 
 ```bash
 # Clone the repository
 git clone https://github.com/Avichai997/Infinity-Playblocks
-cd "Infinity Playblocks"
+cd "Infinity-Playblocks"
 
 # Production mode
-./docker-compose.sh up --build
+docker-compose up --build
 
 # Development mode (with hot-reload)
-./docker-compose.sh up --build --dev
+NODE_ENV=development DOCKERFILE=Dockerfile.dev docker-compose up --build
 ```
 
 That's it! The application will be available at:
+
 - **Client**: http://localhost:5173
 - **Server API**: http://localhost:3001/api
 - **API Documentation (Swagger)**: http://localhost:3001/api/docs
@@ -35,6 +38,7 @@ That's it! The application will be available at:
 ## Tech Stack
 
 **Frontend:**
+
 - React 18 with TypeScript
 - Vite
 - React Query v4
@@ -42,6 +46,7 @@ That's it! The application will be available at:
 - Tailwind CSS
 
 **Backend:**
+
 - NestJS 11 with TypeScript
 - TypeORM
 - PostgreSQL
@@ -50,6 +55,7 @@ That's it! The application will be available at:
 - Swagger/OpenAPI for API documentation
 
 **Infrastructure:**
+
 - Docker & Docker Compose
 - PostgreSQL 15
 
@@ -117,6 +123,7 @@ VITE_API_URL=http://localhost:3001
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Login (sets HTTP-only cookie)
 - `POST /api/auth/logout` - Logout
@@ -124,6 +131,7 @@ VITE_API_URL=http://localhost:3001
 - `GET /api/auth/csrf-token` - Get CSRF token
 
 ### Playbooks
+
 - `GET /api/playbooks` - Get all user's playbooks
 - `POST /api/playbooks` - Create a new playbook
 - `PATCH /api/playbooks/:id` - Update a playbook
@@ -137,13 +145,14 @@ The server includes auto-generated OpenAPI/Swagger documentation for all API end
 ### Access the Documentation
 
 Once the server is running, visit:
+
 - **Swagger UI**: http://localhost:3001/api/docs
 
 ### Features
 
 - **Interactive API Testing**: Try out endpoints directly from the browser
 - **Request/Response Schemas**: View detailed schemas for all DTOs
-- **Authentication Support**: 
+- **Authentication Support**:
   - JWT Bearer token authentication
   - Cookie-based authentication (access_token)
 - **Complete Endpoint Documentation**: All endpoints with descriptions, parameters, and examples
@@ -156,7 +165,6 @@ Once the server is running, visit:
 4. **View Schemas**: Check the "Schemas" section to see all data models and DTOs
 
 The documentation is automatically generated from your code using decorators and will stay up-to-date as you modify your controllers and DTOs.
-
 
 ## Running Tests
 
@@ -177,6 +185,7 @@ The project uses ESLint and Prettier with Husky git hooks:
 - **Pre-push**: Runs full lint and build checks
 
 To format code manually:
+
 ```bash
 # Server
 cd server
@@ -190,16 +199,47 @@ npm run lint
 
 ## Docker Commands
 
-```bash
-# Production mode
-./docker-compose.sh up              # Start services
-./docker-compose.sh up -d           # Start in background
-./docker-compose.sh up --build      # Rebuild and start
-./docker-compose.sh down            # Stop services
+### Start Services
 
-# Development mode (add --dev flag)
-./docker-compose.sh up --dev         # Start in dev mode
-./docker-compose.sh up --build --dev # Rebuild and start in dev mode
-./docker-compose.sh logs -f --dev   # View logs in dev mode
-./docker-compose.sh down --dev      # Stop dev services
+```bash
+# Development mode (with hot-reload)
+NODE_ENV=development DOCKERFILE=Dockerfile.dev docker-compose up --build
+
+# Production mode
+docker-compose up --build
+
+# Run in background (detached mode)
+docker-compose up -d --build
+```
+
+### Stop Services
+
+```bash
+docker-compose down
+```
+
+### View Logs
+
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f server
+docker-compose logs -f client
+docker-compose logs -f db
+```
+
+### Other Useful Commands
+
+```bash
+# Check running containers
+docker-compose ps
+
+# Rebuild specific service
+docker-compose build server
+docker-compose build client
+
+# Restart a service
+docker-compose restart server
 ```
