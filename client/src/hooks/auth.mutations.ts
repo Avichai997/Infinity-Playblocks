@@ -29,13 +29,30 @@ export const useRegisterMutation = () => {
   return useMutation({
     mutationFn: (data: IRegisterDto) => authApi.register(data),
     onSuccess: async (_, variables) => {
-      const loginData = await authApi.login({
-        email: variables.email,
-        password: variables.password,
-      });
-      setUser(loginData.user);
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
+      try {
+        const loginData = await authApi.login({
+          email: variables.email,
+          password: variables.password,
+        });
+        setUser(loginData.user);
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        navigate(APP_ROUTES.PLAYBOOKS_EDITOR);
+      } catch (error) {
+        // Registration succeeded but auto-login failed
+        // Navigate to login page so user can log in manually
+        navigate(APP_ROUTES.LOGIN);
+        // Create a more descriptive error for the component to display
+        const loginError =
+          error instanceof Error
+            ? new Error(`Registration successful, but automatic login failed: ${error.message}`)
+            : new Error(
+                'Registration successful, but automatic login failed. Please log in manually.',
+              );
+        // Re-throw to prevent unhandled promise rejection
+        // Note: The mutation state remains "success" since registration succeeded,
+        // but this error can be caught by error boundaries or logged
+        throw loginError;
+      }
     },
   });
 };
